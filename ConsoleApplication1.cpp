@@ -9,12 +9,11 @@ using namespace std;
 
 #pragma comment(lib, "ws2_32.lib")
 
-vector<pair<string, int>> bullshit(const string& str) {
-	// https://stackoverflow.com/questions/890164/how-can-i-split-a-string-by-a-delimiter-into-an-array
+vector<pair<string, int>> parse(const string& str) {
 	bool started = false;
 	bool inQuotes = false;
 	string nextStr;
-	unsigned long nextInt = 50;
+	unsigned long nextInt = 0;
 	vector<pair<string, int>> result;
 
 	// For each character in the string
@@ -27,13 +26,13 @@ vector<pair<string, int>> bullshit(const string& str) {
 		*/
 
 		if (started) {
-			if (*it == ',')
-				continue;
 			if (*it == '"') {
 				inQuotes = !inQuotes;
 				continue;
 			}
-			if (*it == ']') {
+			if (*it == ',' && !inQuotes)
+				continue;
+			if (*it == ']' && !inQuotes) {
 				started = false;
 				continue;
 			}
@@ -41,7 +40,7 @@ vector<pair<string, int>> bullshit(const string& str) {
 			if (inQuotes) {
 				nextStr += *it;
 			}
-			else {
+			else if (nextInt == 0) { // accounts for 10, 20, 30, ...
 				char* end;
 				const char* temp = &*it;
 				nextInt = strtol(temp, &end, 10);
@@ -50,6 +49,7 @@ vector<pair<string, int>> bullshit(const string& str) {
 		else {
 			if (*it == ',') {
 				result.push_back(make_pair(nextStr, nextInt));
+				nextInt = 0;
 			}
 			else if (*it == '[') {
 				started = true;
@@ -64,12 +64,12 @@ vector<pair<string, int>> bullshit(const string& str) {
 
 int main()
 {	
-	const string testString = "[[\"berb8\",0],[\"Umbermoon\",0],[\"[DELETED]\",2],[\"Grant \",1],[\"Siege\",0],[\"PotionCast\",1],[\"McKendrick\",0]]";
-	vector<pair<string, int>> testResult = bullshit(testString);
-	for (int i = 0; i < testResult.size(); i++) {
-		cout << testResult.at(i).first;
-		cout << ',';
-		cout << testResult.at(i).second;
+	const string input = "[[\"berb8\",10],[\"Umbermoon\",0],[\"[DELETED]\",2],[\"Grant \",1],[\"Siege\",0],[\"PotionCast\",1],[\"McKendrick\",0]]";
+	vector<pair<string, int>> inputVec = parse(input);
+	for (int i = 0; i < inputVec.size(); i++) {
+		cout << inputVec.at(i).first;
+		cout << ':';
+		cout << inputVec.at(i).second;
 		cout << '\n';
 	}
 }
